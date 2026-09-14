@@ -1,0 +1,74 @@
+# HallucC Dify 工具配置
+# 在 Dify 工作流中作为自定义工具节点使用
+identity:
+  name: halluc_detect
+  author: HallucC
+  label:
+    en_US: HallucC Hallucination Detector
+    zh_Hans: HallucC AI幻觉检测
+description:
+  human:
+    en_US: Detect factual hallucinations in AI-generated content with multi-source verification
+    zh_Hans: 多源交叉核验 AI 生成内容中的事实性错误（幻觉），逐句标注可信度
+  llm: Use this tool to verify factual claims in AI-generated text. It searches the web to confirm or refute each atomic claim.
+parameters:
+  - name: text
+    type: string
+    required: true
+    description:
+      en_US: The AI-generated text to verify
+      zh_Hans: 待检测的 AI 生成文本
+    form: llm
+  - name: speed
+    type: string
+    required: false
+    default: standard
+    options:
+      - value: fast
+        label: { zh_Hans: 极速 (~200ms) }
+      - value: standard
+        label: { zh_Hans: 标准 (~5s) }
+      - value: deep
+        label: { zh_Hans: 深度 (~15s) }
+  - name: domain
+    type: string
+    required: false
+    default: general
+    options:
+      - value: general
+      - value: medical
+      - value: legal
+      - value: finance
+      - value: education
+      - value: government
+
+# 接入方式
+provider: custom
+credentials:
+  - name: api_key
+    type: secret-input
+    required: true
+    label: { zh_Hans: HallucC API Key }
+    placeholder: hc_xxxxxxxx
+    help: { zh_Hans: 在 https://aihcc.cloud/settings 创建 API Key }
+
+# API 调用配置
+endpoint: https://aihcc.cloud/api/detect
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{api_key}}
+body:
+  text: "{{text}}"
+  speed: "{{speed}}"
+  domain: "{{domain}}"
+
+# 响应提取
+output_template: |
+  幻觉风险: {{summary.hallucination_risk * 100}}%
+  总声明: {{summary.total}}, 存疑: {{summary.red}}, 疑似: {{summary.yellow}}, 可信: {{summary.green}}
+  {% for claim in claims %}
+  [{{verification.status}}] {{claim.text}}
+  {% endfor %}
+
+billing: 按次计费（免费 2次/天，API版 ¥0.1/次）

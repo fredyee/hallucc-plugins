@@ -1,0 +1,87 @@
+# HallucC Dify 轨迹检测工具（P3.3 升级）
+# 在 Dify 工作流中作为自定义工具节点使用：把工作流的完整执行记录（节点级轨迹）
+# 提交到 /detect-agent-trajectory 做全链路检测。
+#
+# 升级点：从「只校验最终输出」（halluc_detect，见 tool.yaml）升级为
+# 「读取工作流完整执行记录」——评估整条 Agent 轨迹（六维评分 + 失败模式分类 +
+# 幻觉传播 DAG），而非仅看最终文本。这是相对海外竞品唯一的地缘卡位。
+#
+# 接入方式：
+#   1. 工作流末节点用「变量赋值/代码」节点把上游各节点执行记录组装为 trajectory
+#      （每节点 → {step, thought, action, action_input, observation}），
+#      可直接用 HallucC trace_sdk.from_dify_workflow() 转换；
+#   2. 本工具节点接收 trajectory(JSON 字符串) + task，调用轨迹端点。
+identity:
+  name: halluc_detect_trajectory
+  author: HallucC
+  label:
+    en_US: HallucC Agent Trajectory Evaluator
+    zh_Hans: HallucC Agent轨迹检测
+description:
+  human:
+    en_US: Evaluate a full agent execution trajectory (per-step thought/action/observation) for hallucinations, not just the final output
+    zh_Hans: 提交 Agent 完整执行轨迹（逐步 thought/action/observation/终答），做规则+裁判分层检测、六维评分、失败模式分类与幻觉传播 DAG
+  llm: >-
+    Use this tool to evaluate a full agent execution trajectory (per-step
+    thought/action/observation) for hallucinations. Submit the trajectory as a
+    JSON array of steps; returns six-dimension scores, failure-mode codes, and a
+    hallucination propagation DAG.
+parameters:
+  - name: trajectory
+    type: string
+    required: true
+    description:
+      en_US: 'Agent trajectory as JSON array of steps: [{step,thought,action,action_input,observation,final_answer}, ...]. Use HallucC trace_sdk.from_dify_workflow(nodes) to convert Dify node records.'
+      zh_Hans: 'Agent 轨迹的 JSON 数组：[{step,thought,action,action_input,observation,final_answer}, ...]。可用 HallucC trace_sdk.from_dify_workflow(nodes) 转换 Dify 节点记录'
+    form: llm
+  - name: task
+    type: string
+    required: false
+    default: ''
+    description:
+      en_US: Original task instruction (for task_completion / scope_drift judging)
+      zh_Hans: 原始任务指令（task_completion / scope_drift 裁判用）
+    form: llm
+  - name: speed
+    type: string
+    required: false
+    default: standard
+    options:
+      - value: fast
+        label: { zh_Hans: 极速 (~200ms, 0 LLM), en_US: Fast (~200ms, 0 LLM) }
+      - value: standard
+        label: { zh_Hans: 标准 (~5s), en_US: Standard (~5s) }
+      - value: deep
+        label: { zh_Hans: 深度 (~15s, 多模型交叉验证), en_US: Deep (~15s, cross-validation) }
+  - name: domain
+    type: string
+    required: false
+    default: general
+    options:
+      - value: general
+      - value: medical
+      - value: legal
+      - value: finance
+      - value: education
+      - value: government
+
+# 接入方式
+provider: custom
+credentials:
+  - name: api_key
+    type: secret-input
+    required: true
+endpoint:
+  # 指向轨迹全链路检测端点（与 halluc_detect 的 /detect 区分）
+  path: /detect-agent-trajectory
+  method: POST
+  headers:
+    Authorization: Bearer {{api_key}}
+    Content-Type: application/json
+  body: |
+    {
+      "trajectory": {{trajectory}},
+      "task": "{{task}}",
+      "speed": "{{speed}}",
+      "domain": "{{domain}}"
+    }
