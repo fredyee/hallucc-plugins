@@ -19,6 +19,7 @@ description:
     失败模式分类、幻觉传播 DAG）、Prompt 注入/越狱安全网关
     （对齐 OWASP LLM Top 10），以及 Computer-Use Agent 动作风险分级（L0-L3）。
 icon: icon.png
+privacy: PRIVACY.md
 resource:
   memory: 268435456
   permission:

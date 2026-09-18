@@ -1,6 +1,7 @@
 # HallucC — AI Hallucination Detection & Safety for Dify
 
 **Author:** fredyee · **Version:** 0.1.0 · **Type:** tool plugin
+**Source repository:** <https://github.com/fredyee/hallucc-plugins> (`dify/`)
 
 HallucC (https://aihcc.cloud) brings production-grade AI content verification into your
 Dify workflows and agents. All detection runs on the HallucC cloud API — this plugin is

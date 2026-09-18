@@ -1,6 +1,7 @@
 # HallucC — Dify AI 幻觉检测与安全插件
 
 **作者：** fredyee · **版本：** 0.1.0 · **类型：** 工具插件
+**源码仓库：** <https://github.com/fredyee/hallucc-plugins>（`dify/` 目录）
 
 HallucC（https://aihcc.cloud）把生产级 AI 内容核验带进 Dify 工作流与 Agent。
 所有检测均在 HallucC 云端 API 完成——本插件只是轻量客户端，本地不运行任何模型或检索逻辑。
