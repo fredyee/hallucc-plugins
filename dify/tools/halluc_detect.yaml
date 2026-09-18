@@ -42,7 +42,7 @@ parameters:
     human_description:
       en_US: Detection depth vs latency trade-off
       zh_Hans: 检测深度与耗时的权衡
-    llm_description: Detection depth: fast (rule-only, ~200ms), standard (~5s), deep (multi-model cross-validation, ~15s).
+    llm_description: "Detection depth: fast (rule-only, ~200ms), standard (~5s), deep (multi-model cross-validation, ~15s)."
     options:
       - value: fast
         label:
@@ -67,7 +67,7 @@ parameters:
     human_description:
       en_US: Domain profile with trusted sources and prompt hints
       zh_Hans: 领域模式（内置可信来源与提示词优化）
-    llm_description: Domain profile: general, medical, legal, finance, education, government.
+    llm_description: "Domain profile: general, medical, legal, finance, education, government."
     options:
       - value: general
         label:
