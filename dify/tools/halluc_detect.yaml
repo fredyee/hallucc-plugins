@@ -1,0 +1,98 @@
+identity:
+  name: halluc_detect
+  author: fredyee
+  label:
+    en_US: Hallucination Detection
+    zh_Hans: 幻觉检测
+description:
+  human:
+    en_US: >-
+      Detect factual hallucinations in AI-generated text with multi-source
+      search verification. Each claim is labeled supported / refuted /
+      unverified with evidence sources.
+    zh_Hans: >-
+      多源搜索交叉核验 AI 生成文本中的事实性幻觉，逐条声明标注
+      证实/证伪/存疑，并附来源链接与幻觉风险评分。
+  llm: >-
+    Verify factual claims in AI-generated text. Extracts atomic claims,
+    searches the web to confirm or refute each, and returns per-claim status
+    (supported / refuted / unverified) with evidence sources plus an overall
+    hallucination risk score. Use this before presenting AI-generated facts
+    to end users.
+parameters:
+  - name: text
+    type: string
+    required: true
+    form: llm
+    label:
+      en_US: Text
+      zh_Hans: 待检测文本
+    human_description:
+      en_US: The AI-generated text to verify (1-50000 chars)
+      zh_Hans: 需要检测幻觉的 AI 生成文本（1-50000 字符）
+    llm_description: The AI-generated text whose factual claims should be verified.
+  - name: speed
+    type: select
+    required: false
+    default: standard
+    form: form
+    label:
+      en_US: Speed mode
+      zh_Hans: 速度模式
+    human_description:
+      en_US: Detection depth vs latency trade-off
+      zh_Hans: 检测深度与耗时的权衡
+    llm_description: Detection depth: fast (rule-only, ~200ms), standard (~5s), deep (multi-model cross-validation, ~15s).
+    options:
+      - value: fast
+        label:
+          en_US: Fast (~200ms)
+          zh_Hans: 极速（约 200ms）
+      - value: standard
+        label:
+          en_US: Standard (~5s)
+          zh_Hans: 标准（约 5s）
+      - value: deep
+        label:
+          en_US: Deep (~15s)
+          zh_Hans: 深度（约 15s）
+  - name: domain
+    type: select
+    required: false
+    default: general
+    form: form
+    label:
+      en_US: Domain
+      zh_Hans: 领域
+    human_description:
+      en_US: Domain profile with trusted sources and prompt hints
+      zh_Hans: 领域模式（内置可信来源与提示词优化）
+    llm_description: Domain profile: general, medical, legal, finance, education, government.
+    options:
+      - value: general
+        label:
+          en_US: General
+          zh_Hans: 通用
+      - value: medical
+        label:
+          en_US: Medical
+          zh_Hans: 医疗
+      - value: legal
+        label:
+          en_US: Legal
+          zh_Hans: 法律
+      - value: finance
+        label:
+          en_US: Finance
+          zh_Hans: 金融
+      - value: education
+        label:
+          en_US: Education
+          zh_Hans: 教育
+      - value: government
+        label:
+          en_US: Government
+          zh_Hans: 政务
+extra:
+  python:
+    source: tools/halluc_detect.py

@@ -1,0 +1,126 @@
+identity:
+  name: halluc_detect_trajectory
+  author: fredyee
+  label:
+    en_US: Agent Trajectory Evaluation
+    zh_Hans: Agent 轨迹检测
+description:
+  human:
+    en_US: >-
+      Evaluate a full agent execution trajectory (per-step thought / action /
+      observation), not just the final output: rule + judge layered checks,
+      six-dimension scoring, failure-mode classification and hallucination
+      propagation DAG.
+    zh_Hans: >-
+      提交 Agent 完整执行轨迹（逐步 thought/action/observation/终答）做全链路检测：
+      规则+裁判分层检查、六维评分、失败模式分类与幻觉传播 DAG，
+      而非仅校验最终输出。
+  llm: >-
+    Evaluate a full agent execution trajectory for hallucinations. Submit the
+    trajectory as a JSON array of steps, each with step, thought, action,
+    action_input, observation and (on the last step) final_answer. Returns
+    six-dimension scores (tool_selection, parameter_validity,
+    observation_faithfulness, reasoning_coherence, task_completion,
+    trajectory_efficiency), failure-mode codes, and a hallucination
+    propagation DAG. Use this to audit whether an agent's intermediate
+    reasoning stayed faithful to tool outputs.
+parameters:
+  - name: trajectory
+    type: string
+    required: true
+    form: llm
+    label:
+      en_US: Trajectory (JSON)
+      zh_Hans: 轨迹（JSON）
+    human_description:
+      en_US: >-
+        JSON array of steps: [{"step":1,"thought":"...","action":"...",
+        "action_input":"...","observation":"..."}, ..., {"step":N,
+        "final_answer":"..."}]. 1-20 steps. In Dify workflows, assemble it in
+        a Code node from upstream node execution records.
+      zh_Hans: >-
+        JSON 数组：[{"step":1,"thought":"...","action":"...",
+        "action_input":"...","observation":"..."}, ..., {"step":N,
+        "final_answer":"..."}]，1-20 步。在 Dify 工作流中可用「代码执行」节点
+        把上游各节点执行记录组装为该结构。
+    llm_description: >-
+      Agent trajectory as a JSON array of step objects with keys step
+      (integer), thought, action, action_input, observation, and final_answer
+      on the last step. 1-20 steps.
+  - name: task
+    type: string
+    required: false
+    default: ""
+    form: llm
+    label:
+      en_US: Original task
+      zh_Hans: 原始任务
+    human_description:
+      en_US: Original task instruction, used for task_completion / scope_drift judging
+      zh_Hans: 原始任务指令，用于 task_completion / scope_drift 裁判
+    llm_description: The original task instruction given to the agent, if known.
+  - name: speed
+    type: select
+    required: false
+    default: standard
+    form: form
+    label:
+      en_US: Speed mode
+      zh_Hans: 速度模式
+    human_description:
+      en_US: Detection depth vs latency trade-off
+      zh_Hans: 检测深度与耗时的权衡
+    llm_description: Detection depth: fast (0 LLM calls, ~200ms), standard (~5s), deep (multi-model cross-validation, ~15s).
+    options:
+      - value: fast
+        label:
+          en_US: Fast (~200ms, 0 LLM)
+          zh_Hans: 极速（约 200ms，无 LLM）
+      - value: standard
+        label:
+          en_US: Standard (~5s)
+          zh_Hans: 标准（约 5s）
+      - value: deep
+        label:
+          en_US: Deep (~15s)
+          zh_Hans: 深度（约 15s）
+  - name: domain
+    type: select
+    required: false
+    default: general
+    form: form
+    label:
+      en_US: Domain
+      zh_Hans: 领域
+    human_description:
+      en_US: Domain profile
+      zh_Hans: 领域模式
+    llm_description: Domain profile: general, medical, legal, finance, education, government.
+    options:
+      - value: general
+        label:
+          en_US: General
+          zh_Hans: 通用
+      - value: medical
+        label:
+          en_US: Medical
+          zh_Hans: 医疗
+      - value: legal
+        label:
+          en_US: Legal
+          zh_Hans: 法律
+      - value: finance
+        label:
+          en_US: Finance
+          zh_Hans: 金融
+      - value: education
+        label:
+          en_US: Education
+          zh_Hans: 教育
+      - value: government
+        label:
+          en_US: Government
+          zh_Hans: 政务
+extra:
+  python:
+    source: tools/halluc_detect_trajectory.py

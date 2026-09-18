@@ -1,0 +1,35 @@
+identity:
+  author: fredyee
+  name: hallucc
+  label:
+    en_US: HallucC
+    zh_Hans: HallucC
+  description:
+    en_US: >-
+      HallucC: AI hallucination detection, agent trajectory evaluation,
+      safety guardrails and CUA action risk classification.
+    zh_Hans: >-
+      HallucC：AI 幻觉检测、Agent 轨迹全链路评估、安全护栏与 CUA 动作风险分级。
+  icon: icon.png
+credentials_for_provider:
+  api_key:
+    type: secret-input
+    required: true
+    label:
+      en_US: HallucC API Key
+      zh_Hans: HallucC API Key
+    placeholder:
+      en_US: hc_xxxxxxxx
+      zh_Hans: hc_xxxxxxxx
+    help:
+      en_US: Create an API key at https://aihcc.cloud/keys
+      zh_Hans: 在 https://aihcc.cloud/keys 创建 API Key
+    url: https://aihcc.cloud/keys
+tools:
+  - tools/halluc_detect.yaml
+  - tools/halluc_detect_trajectory.yaml
+  - tools/guard_check.yaml
+  - tools/cua_classify.yaml
+extra:
+  python:
+    source: provider/hallucc.py

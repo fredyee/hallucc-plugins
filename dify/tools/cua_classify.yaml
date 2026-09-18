@@ -1,0 +1,60 @@
+identity:
+  name: cua_classify
+  author: fredyee
+  label:
+    en_US: CUA Action Risk Classification
+    zh_Hans: CUA 动作风险分级
+description:
+  human:
+    en_US: >-
+      Risk-classify Computer-Use Agent actions: L0 allow / L1 allow+log /
+      L2 require confirmation / L3 block. Pure rule engine, no LLM, no quota
+      cost — safe for high-frequency calls.
+    zh_Hans: >-
+      Computer-Use Agent 动作风险分级：L0 放行 / L1 放行+记录 /
+      L2 需确认 / L3 阻断。纯规则引擎，不调 LLM、不耗额度，可高频调用。
+  llm: >-
+    Classify Computer-Use Agent (GUI automation) actions by risk level L0-L3
+    (allow / allow+log / require confirmation / block). Accepts a JSON array
+    of actions; each action may be a raw {x, y} click, a pyautogui-style
+    action name (press/hotkey/write/typewrite/move/doubleclick/scroll...) or
+    a ReAct-style action with action_input. Pure rule engine, free and fast.
+parameters:
+  - name: actions
+    type: string
+    required: true
+    form: llm
+    label:
+      en_US: Actions (JSON)
+      zh_Hans: 动作列表（JSON）
+    human_description:
+      en_US: >-
+        JSON array of actions, 1-500 items. Each item may use any of:
+        {"action":"click","x":100,"y":200}, {"x":100,"y":200},
+        {"action":"hotkey","text":"ctrl+a"},
+        {"action":"write","text":"..."}, with optional target_app /
+        target_element / target_path.
+      zh_Hans: >-
+        JSON 数组，1-500 条。每条可用宽松格式：{"action":"click","x":100,"y":200}
+        或只给坐标 {"x":100,"y":200}（自动推断为 click）、pyautogui 风格动作名
+        （press/hotkey/write/typewrite/move/doubleclick/scroll…），
+        可选 target_app / target_element / target_path。
+    llm_description: >-
+      JSON array of GUI actions to classify. Each action: optional action
+      name, x/y coordinate or coordinate pair, text/action_input payload, and
+      optional target_app / target_element / target_path.
+  - name: session_id
+    type: string
+    required: false
+    default: ""
+    form: llm
+    label:
+      en_US: Session ID
+      zh_Hans: 会话 ID
+    human_description:
+      en_US: Optional; when given, results are written to the audit log for replay
+      zh_Hans: 可选；提供后写入审计表，可在控制台回放
+    llm_description: Optional session identifier for audit logging.
+extra:
+  python:
+    source: tools/cua_classify.py

@@ -1,0 +1,59 @@
+identity:
+  name: guard_check
+  author: fredyee
+  label:
+    en_US: AI Safety Guard
+    zh_Hans: AI 安全检测
+description:
+  human:
+    en_US: >-
+      OWASP LLM Top 10 aligned safety check for AI outputs: prompt injection,
+      jailbreak, harmful content, sensitive data leakage and fraud, with
+      three-layer detection.
+    zh_Hans: >-
+      对齐 OWASP LLM Top 10 的 AI 输出安全检测：Prompt 注入 / 越狱 /
+      有害内容 / 敏感信息泄露 / 欺诈，三层检测。
+  llm: >-
+    Check an AI output (optionally with its triggering prompt) for prompt
+    injection, jailbreak attempts, harmful content, sensitive data leakage
+    and fraud. Returns pass/fail, risk level and matched threat categories.
+    Use this as a safety gate before returning AI output to end users.
+parameters:
+  - name: output
+    type: string
+    required: true
+    form: llm
+    label:
+      en_US: AI output
+      zh_Hans: AI 响应文本
+    human_description:
+      en_US: The AI response text to check (1-50000 chars)
+      zh_Hans: 待检测的 AI 响应文本（1-50000 字符）
+    llm_description: The AI-generated response text to safety-check.
+  - name: prompt
+    type: string
+    required: false
+    default: ""
+    form: llm
+    label:
+      en_US: User prompt
+      zh_Hans: 用户输入
+    human_description:
+      en_US: The original user input (optional, improves injection detection)
+      zh_Hans: 原始用户输入（可选，提供后注入检测更准）
+    llm_description: The original user prompt that produced the output, if available.
+  - name: check_hallucination
+    type: boolean
+    required: false
+    default: false
+    form: form
+    label:
+      en_US: Also detect hallucinations
+      zh_Hans: 同时检测幻觉
+    human_description:
+      en_US: Also run the hallucination pipeline (consumes detection quota)
+      zh_Hans: 同时跑幻觉检测管线（会消耗检测额度）
+    llm_description: Whether to also run hallucination detection on the output (consumes quota).
+extra:
+  python:
+    source: tools/guard_check.py
