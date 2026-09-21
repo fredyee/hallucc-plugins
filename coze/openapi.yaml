@@ -11,6 +11,8 @@ info:
       检测 AI 生成内容中的事实性错误（幻觉），逐句标注可信度，附搜索来源链接。
       支持 Agent 执行轨迹全链路评估（六维评分+失败模式+幻觉传播）、Prompt 注入/越狱/有害内容安全网关、
       以及 Computer-Use Agent 动作风险分级（L0-L3，纯规则不耗额度）。
+      【重要】使用前需先在 https://aihcc.cloud 注册账号，并在 /keys 页申请 API Key，
+      在插件设置中填入 Bearer <你的 API Key>。免费套餐每日含额度，CUA 动作分级免费不耗额度。
     icon: https://aihcc.cloud/favicon.ico
     category: AI安全
     pricing: |
