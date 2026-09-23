@@ -223,8 +223,8 @@ components:
               severity: { type: string }
               match_context: { type: string, description: 命中上下文片段 }
               recommendation: { type: string }
-        hallucination: { type: object, nullable: true }
-        llm_analysis: { type: object, nullable: true }
+        hallucination: { type: object, description: 可选，存在幻觉时返回 }
+        llm_analysis: { type: object, description: 可选，存在分析时返回 }
         quota: { $ref: '#/components/schemas/Quota' }
 
     TrajectoryRequest:
@@ -352,7 +352,7 @@ components:
                   target_app: { type: string }
                   target_element: { type: string }
                   target_path: { type: string }
-                  coordinate: { type: array, items: { type: integer }, nullable: true }
+                  coordinate: { type: array, items: { type: integer }, description: 可选坐标 [x, y] }
               level: { type: string, enum: [L0, L1, L2, L3] }
               verdict: { type: string }
               outcome: { type: string, description: 'L0 放行 / L1 放行+记录 / L2 需确认 / L3 阻断' }
@@ -368,7 +368,7 @@ components:
             L3: { type: integer }
             blocked: { type: integer, description: L3 数 }
             confirm: { type: integer, description: L2 数 }
-        session_id: { type: string, nullable: true }
+        session_id: { type: string, description: 会话 ID（未指定时为空） }
 
     CuaAuditCodeRequest:
       type: object
@@ -397,7 +397,7 @@ components:
             type: object
             properties:
               file: { type: string }
-              line: { type: integer, nullable: true }
+              line: { type: integer, description: 行号（文件级别发现时为 0） }
               severity: { type: string, enum: [high, medium, low] }
               category: { type: string, enum: [dangerous_imports, tool_registrations, prompt_injection_surfaces, dangerous_defaults, sandbox_absence] }
               detail: { type: string }
@@ -424,5 +424,5 @@ components:
       properties:
         plan: { type: string }
         used: { type: integer }
-        limit: { type: integer, nullable: true, description: 日限额（免费版），null=无限 }
-        remaining: { type: integer, nullable: true }
+        limit: { type: integer, description: 日限额（免费版），-1 表示无限 }
+        remaining: { type: integer, description: 剩余额度 }
