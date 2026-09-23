@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: HallucC AI 幻觉检测 API
   description: |
-    HallucC 提供 AI 内容幻觉检测、安全网关、Agent 轨迹全链路评估、CUA 动作风险分级能力。
+    HallucC 提供 AI 内容幻觉检测、安全网关、Agent 轨迹全链路评估、CUA 动作风险分级、Agent 源码静态审计能力。
     作为 Coze 插件使用时，可作为 Agent 内容安全校验节点。
   version: 1.1.0
   x-coze-plugin:
@@ -10,9 +10,9 @@ info:
     description: |
       检测 AI 生成内容中的事实性错误（幻觉），逐句标注可信度，附搜索来源链接。
       支持 Agent 执行轨迹全链路评估（六维评分+失败模式+幻觉传播）、Prompt 注入/越狱/有害内容安全网关、
-      以及 Computer-Use Agent 动作风险分级（L0-L3，纯规则不耗额度）。
+      以及 Computer-Use Agent 动作风险分级（L0-L3，纯规则不耗额度）和 Agent 源码静态审计（危险导入/权限边界/注入面/沙箱缺失检测，同样免费不耗额度）。
       【重要】使用前需先在 https://aihcc.cloud 注册账号，并在 /keys 页申请 API Key，
-      在插件设置中填入 Bearer <你的 API Key>。免费套餐每日含额度，CUA 动作分级免费不耗额度。
+      在插件设置中填入 Bearer <你的 API Key>。免费套餐每日含额度，CUA 动作分级和代码审计均免费不耗额度。
     icon: https://aihcc.cloud/favicon.ico
     category: AI安全
     pricing: |
@@ -118,6 +118,26 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/CuaClassifyResponse' }
+
+  /cua/audit-code:
+    post:
+      operationId: auditCode
+      summary: Agent 源码静态审计
+      description: |
+        静态分析 Agent 源码，检测危险导入（subprocess/os.system 等）、权限边界（eval/exec）、
+        注入面（字符串拼接 shell）、危险默认值、沙箱缺失。
+        纯规则扫描，不调 LLM、不耗额度，可高频调用。支持单文件或多文件扫描。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CuaAuditCodeRequest' }
+      responses:
+        '200':
+          description: 审计结果
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CuaAuditCodeResponse' }
 
 components:
   securitySchemes:
@@ -349,6 +369,54 @@ components:
             blocked: { type: integer, description: L3 数 }
             confirm: { type: integer, description: L2 数 }
         session_id: { type: string, nullable: true }
+
+    CuaAuditCodeRequest:
+      type: object
+      description: code 和 files 二选一
+      properties:
+        code: { type: string, maxLength: 50000, description: 单文件模式：源代码文本（≤50000 字符），与 files 二选一 }
+        filename: { type: string, description: '单文件模式：文件名（默认 input.py）' }
+        language: { type: string, enum: [auto, python, javascript, typescript], description: '语言提示，auto 时按 filename 扩展名推断（默认 auto）' }
+        files:
+          type: array
+          description: '多文件模式：[{path, content, language?}] 数组，与 code 二选一'
+          items:
+            type: object
+            required: [path, content]
+            properties:
+              path: { type: string, minLength: 1 }
+              content: { type: string, maxLength: 50000 }
+              language: { type: string, enum: [auto, python, javascript, typescript] }
+
+    CuaAuditCodeResponse:
+      type: object
+      properties:
+        findings:
+          type: array
+          items:
+            type: object
+            properties:
+              file: { type: string }
+              line: { type: integer, nullable: true }
+              severity: { type: string, enum: [high, medium, low] }
+              category: { type: string, enum: [dangerous_imports, tool_registrations, prompt_injection_surfaces, dangerous_defaults, sandbox_absence] }
+              detail: { type: string }
+              raw: { type: string, description: 原始代码片段（截断到 200 字符） }
+        summary:
+          type: object
+          properties:
+            total: { type: integer, description: 总发现数 }
+            by_severity:
+              type: object
+              properties:
+                high: { type: integer }
+                medium: { type: integer }
+                low: { type: integer }
+            by_category: { type: object, additionalProperties: { type: integer } }
+            capability_level: { type: string, enum: [high, medium, low], description: 能力等级（基于最高 severity） }
+            tool_count: { type: integer, description: 注册的工具体数 }
+            dangerous_import_count: { type: integer, description: 危险导入数 }
+            injection_surface_count: { type: integer, description: 注入面数 }
 
     Quota:
       type: object

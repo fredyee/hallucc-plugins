@@ -11,13 +11,16 @@ description:
     multi-source search verification, evaluates full agent execution
     trajectories (six-dimension scoring, failure-mode classification,
     hallucination propagation DAG), guards against prompt injection and
-    jailbreaks (OWASP LLM Top 10), and classifies Computer-Use Agent action
-    risk (L0-L3).
+    jailbreaks (OWASP LLM Top 10), classifies Computer-Use Agent action
+    risk (L0-L3), and performs static audit of Agent source code
+    (dangerous imports, permission boundaries, injection surfaces,
+    sandbox absence).
   zh_Hans: >-
     HallucC 多源搜索交叉核验 AI 生成内容中的事实性幻觉（逐条声明标注
     证实/证伪/存疑并附来源），支持 Agent 执行轨迹全链路评估（六维评分、
     失败模式分类、幻觉传播 DAG）、Prompt 注入/越狱安全网关
-    （对齐 OWASP LLM Top 10），以及 Computer-Use Agent 动作风险分级（L0-L3）。
+    （对齐 OWASP LLM Top 10）、Computer-Use Agent 动作风险分级（L0-L3）
+    以及 Agent 源码静态审计（危险导入、权限边界、注入面、沙箱缺失检测）。
 icon: icon.png
 privacy: PRIVACY.md
 resource:

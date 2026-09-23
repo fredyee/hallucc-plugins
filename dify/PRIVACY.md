@@ -3,16 +3,16 @@
 ## What this plugin does
 
 This plugin is a thin API client. It forwards the content you explicitly pass to each
-tool (text to verify, agent trajectories, AI outputs to safety-check, or CUA action
-lists) to the HallucC cloud API at `https://aihcc.cloud/api`, and returns the API
-response to your Dify workflow. No detection, model, or search logic runs inside the
-plugin.
+tool (text to verify, agent trajectories, AI outputs to safety-check, CUA action
+lists, or Agent source code) to the HallucC cloud API at `https://aihcc.cloud/api`,
+and returns the API response to your Dify workflow. No detection, model, or search
+logic runs inside the plugin.
 
 ## Data sent to HallucC
 
 - Your HallucC API key (used only for `Authorization` header authentication).
 - The exact tool parameters you provide: text, trajectory JSON, guard output/prompt,
-  or CUA action JSON.
+  CUA action JSON, or source code text.
 
 Nothing else is collected: no telemetry, no analytics, no Dify workspace data, no
 environment scraping.
