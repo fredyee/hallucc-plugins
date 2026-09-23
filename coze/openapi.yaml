@@ -352,7 +352,7 @@ components:
                   target_app: { type: string }
                   target_element: { type: string }
                   target_path: { type: string }
-                  coordinate: { type: array, items: { type: integer }, description: 可选坐标 [x, y] }
+                  coordinate: { type: array, items: { type: integer }, description: '可选坐标 [x, y]' }
               level: { type: string, enum: [L0, L1, L2, L3] }
               verdict: { type: string }
               outcome: { type: string, description: 'L0 放行 / L1 放行+记录 / L2 需确认 / L3 阻断' }
