@@ -7,7 +7,7 @@ identity:
   description:
     en_US: >-
       HallucC: AI hallucination detection, agent trajectory evaluation,
-      safety guardrails and CUA action risk classification.
+      safety guardrails, CUA action risk classification, and Agent source code static audit.
     zh_Hans: >-
       HallucC：AI 幻觉检测、Agent 轨迹全链路评估、安全护栏与 CUA 动作风险分级。
   icon: icon.png
@@ -30,6 +30,7 @@ tools:
   - tools/halluc_detect_trajectory.yaml
   - tools/guard_check.yaml
   - tools/cua_classify.yaml
+  - tools/cua_audit_code.yaml
 extra:
   python:
     source: provider/hallucc.py

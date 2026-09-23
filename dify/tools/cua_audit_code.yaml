@@ -1,0 +1,63 @@
+identity:
+  name: cua_audit_code
+  author: fredyee
+  label:
+    en_US: CUA Code Audit
+    zh_Hans: CUA 代码审计
+description:
+  human:
+    en_US: >-
+      Static-analyze Agent source code for dangerous patterns: dangerous imports
+      (subprocess/os.system), permission boundaries (eval/exec), injection surfaces
+      (string-concatenated shell commands), dangerous defaults, sandbox absence.
+      Pure rule engine, no LLM, no quota cost.
+    zh_Hans: >-
+      Agent 源码静态审计：检测危险导入（subprocess/os.system 等）、权限边界（eval/exec）、
+      注入面（字符串拼接 shell）、危险默认值、沙箱缺失。纯规则引擎，不调 LLM、不耗额度。
+  llm: >-
+    Static-analyze Agent source code for dangerous patterns. Accepts source code
+    text or multiple files; returns findings by severity with line numbers, plus
+    capability_level summary. Pure rule engine, free and fast.
+parameters:
+  - name: code
+    type: string
+    required: false
+    form: llm
+    label:
+      en_US: Source code
+      zh_Hans: 源代码
+    human_description:
+      en_US: >-
+        Source code text to scan (single file mode). Mutually exclusive with files.
+        Supports Python, JavaScript, TypeScript.
+      zh_Hans: 要扫描的源代码文本（单文件模式），与 files 二选一。支持 Python/JavaScript/TypeScript。
+    llm_description: >-
+      Source code text to scan (single file mode, max 50000 chars).
+  - name: filename
+    type: string
+    required: false
+    default: ""
+    form: llm
+    label:
+      en_US: Filename
+      zh_Hans: 文件名
+    human_description:
+      en_US: Filename for identification in the report (default: input.py).
+      zh_Hans: 文件名，用于报告中标识（默认 input.py）。
+    llm_description: >-
+      Filename for the code (default: input.py).
+  - name: files
+    type: string
+    required: false
+    default: ""
+    form: llm
+    label:
+      en_US: Files (JSON)
+      zh_Hans: 文件列表（JSON）
+    human_description:
+      en_US: >-
+        JSON array of file objects: [{"path":"agent.py","content":"..."}, ...].
+        Mutually exclusive with code.
+      zh_Hans: JSON 数组：[{"path":"agent.py","content":"..."}, ...]。与 code 二选一。
+    llm_description: >-
+      JSON array of {path, content} objects for multi-file audit.

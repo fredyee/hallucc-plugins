@@ -15,6 +15,7 @@ a thin client; no model or search logic runs locally.
 | **Agent Trajectory Evaluation** (`halluc_detect_trajectory`) | Audits a full agent execution trajectory (per-step thought/action/observation), not just the final answer. Six-dimension scoring, failure-mode codes, hallucination propagation DAG. |
 | **AI Safety Guard** (`guard_check`) | OWASP LLM Top 10 aligned safety gate: prompt injection, jailbreak, harmful content, sensitive-data leakage, fraud. |
 | **CUA Action Risk Classification** (`cua_classify`) | Classifies Computer-Use Agent (GUI) actions L0–L3 (allow / log / confirm / block). Pure rule engine — free, no quota cost, safe for high-frequency calls. |
+| **CUA Code Audit** (`cua_audit_code`) | Static-analyzes Agent source code for dangerous imports, permission boundaries, injection surfaces, dangerous defaults, sandbox absence. Pure rule engine — free, no quota cost. |
 
 ## Setup
 

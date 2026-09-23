@@ -14,6 +14,7 @@ HallucC（https://aihcc.cloud）把生产级 AI 内容核验带进 Dify 工作�
 | **Agent 轨迹检测**（`halluc_detect_trajectory`） | 审计 Agent 完整执行轨迹（逐步 thought/action/observation），而非只看最终答案：六维评分、失败模式分类、幻觉传播 DAG。 |
 | **AI 安全检测**（`guard_check`） | 对齐 OWASP LLM Top 10 的安全网关：Prompt 注入、越狱、有害内容、敏感信息泄露、欺诈。 |
 | **CUA 动作风险分级**（`cua_classify`） | Computer-Use Agent（GUI 操作）动作分级 L0–L3（放行/记录/确认/阻断）。纯规则引擎——免费、不耗额度、可高频调用。 |
+| **CUA 代码审计**（`cua_audit_code`） | Agent 源码静态审计：危险导入、权限边界、注入面、危险默认值、沙箱缺失。纯规则引擎——免费、不耗额度。 |
 
 ## 配置
 
