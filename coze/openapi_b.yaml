@@ -1,0 +1,360 @@
+openapi: 3.0.3
+info:
+  title: HallucC AI 幻觉检测 API
+  description: |
+    HallucC 提供 AI 内容幻觉检测、安全网关、Agent 轨迹全链路评估、CUA 动作风险分级能力。
+    作为 Coze 插件使用时，可作为 Agent 内容安全校验节点。
+  version: 1.1.0
+  x-coze-plugin:
+    name: HallucC 幻觉检测
+    description: |
+      检测 AI 生成内容中的事实性错误（幻觉），逐句标注可信度，附搜索来源链接。
+      支持 Agent 执行轨迹全链路评估（六维评分+失败模式+幻觉传播）、Prompt 注入/越狱/有害内容安全网关、
+      以及 Computer-Use Agent 动作风险分级（L0-L3，纯规则不耗额度）。
+      【重要】使用前需先在 https://aihcc.cloud 注册账号，并在 /keys 页申请 API Key，
+      在插件设置中填入 Bearer <你的 API Key>。免费套餐每日含额度，CUA 动作分级免费不耗额度。
+    icon: https://aihcc.cloud/favicon.ico
+    category: AI安全
+    pricing: |
+      免费版 2次/天；订阅 Pro ¥49/月（500次）、Pro增强 ¥99/月（2000次，含 CUA 拦截）、
+      CUA版 ¥59/月（500次远程确认 + 检测）；API版 ¥0.1/次按量计费。
+      CUA 动作分级在线检测（/cua/classify）对所有用户免费、不耗额度。
+
+servers:
+  - url: https://aihcc.cloud/api
+    description: HallucC 生产环境
+
+security:
+  - bearerAuth: []
+
+paths:
+  /detect:
+    post:
+      operationId: detectHallucination
+      summary: 检测 AI 幻觉
+      description: 对输入文本逐条提取声明，搜索验证，标注红/黄/绿可信度并附来源链接。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text: { type: string, description: 待检测文本, maxLength: 50000, minLength: 1 }
+                strict: { type: boolean, description: 严格模式（自我一致性），缺省用全局配置 }
+                speed:
+                  type: string
+                  enum: [fast, standard, deep]
+                  description: 速度模式（fast 极速 / standard 标准 / deep 深度），缺省 standard
+                domain:
+                  type: string
+                  enum: [general, medical, legal, finance, education, government]
+                  description: 领域模式，缺省 general
+                model: { type: string, maxLength: 50, description: 被测模型名（选填，分享卡片展示用） }
+      responses:
+        '200':
+          description: 检测结果
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DetectionResponse' }
+
+  /guard/check:
+    post:
+      operationId: checkSafety
+      summary: AI 安全检测
+      description: OWASP LLM Top 10 对齐的安全检测（Prompt 注入 / 越狱 / 有害内容 / 敏感信息泄露 / 欺诈），三层检测。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GuardRequest' }
+      responses:
+        '200':
+          description: 安全检测结果
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GuardResponse' }
+
+  /detect-agent-trajectory:
+    post:
+      operationId: detectAgentTrajectory
+      summary: Agent 轨迹全链路检测
+      description: |
+        提交 Agent 执行轨迹（逐步 thought/action/action_input/observation/final_answer），
+        做规则+裁判分层检测、六维评分、失败模式分类与幻觉传播 DAG。
+        支持 fast/standard/deep 三档。这是「读取工作流完整执行记录」的入口——
+        不再只校验最终输出，而是评估整条轨迹。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TrajectoryRequest' }
+      responses:
+        '200':
+          description: 轨迹检测结果
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TrajectoryResponse' }
+
+  /cua/classify:
+    post:
+      operationId: classifyCuaActions
+      summary: CUA 动作风险分级
+      description: |
+        Computer-Use Agent 动作风险分级（L0 放行 / L1 放行+记录 / L2 需确认 / L3 阻断）。
+        纯规则引擎，不调 LLM、不耗额度，可高频调用。
+        宽松输入：每条 action 可只给 {x,y} 坐标式点击、pyautogui 风格动作名
+        （press/hotkey/write/typewrite/move/doubleclick…）或 ReAct 风格 action_input，
+        后端自动归一化后分级。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CuaClassifyRequest' }
+      responses:
+        '200':
+          description: 动作分级结果
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CuaClassifyResponse' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: HallucC API Key（hc_xxx，注册后于 aihcc.cloud/keys 页创建）
+  schemas:
+    DetectionResponse:
+      type: object
+      properties:
+        detection_id: { type: integer }
+        input: { type: string, description: 检测文本预览 }
+        summary: { $ref: '#/components/schemas/DetectionSummary' }
+        claims:
+          type: array
+          items: { $ref: '#/components/schemas/ClaimResult' }
+        quota: { $ref: '#/components/schemas/Quota' }
+        strict: { type: boolean }
+        domain: { type: string }
+        speed: { type: string }
+        elapsed_ms: { type: number }
+        citations:
+          type: array
+          description: 引用真实性核查
+          items: { type: object }
+        math_issues:
+          type: array
+          description: 数学验证问题
+          items: { type: object }
+    DetectionSummary:
+      type: object
+      properties:
+        total: { type: integer }
+        red: { type: integer, description: 已证伪声明数 }
+        yellow: { type: integer, description: 无法验证声明数 }
+        green: { type: integer, description: 已证实声明数 }
+        hallucination_risk: { type: number, description: 幻觉风险 (red+yellow)/total }
+    ClaimResult:
+      type: object
+      properties:
+        claim: { $ref: '#/components/schemas/Claim' }
+        verification: { $ref: '#/components/schemas/Verification' }
+    Claim:
+      type: object
+      properties:
+        id: { type: integer }
+        text: { type: string }
+        type: { type: string, enum: [factual, logical, subjective, common] }
+    Verification:
+      type: object
+      properties:
+        status: { type: string, enum: [supported, refuted, unverified] }
+        confidence: { type: number }
+        reason: { type: string }
+        sources: { type: array, items: { type: object } }
+
+    GuardRequest:
+      type: object
+      required: [output]
+      properties:
+        prompt: { type: string, maxLength: 50000, description: 用户输入（可选） }
+        output: { type: string, minLength: 1, maxLength: 50000, description: AI 响应文本 }
+        check_hallucination: { type: boolean, default: false, description: 是否同时检测幻觉 }
+    GuardResponse:
+      type: object
+      properties:
+        detection_id: { type: integer }
+        passed: { type: boolean, description: 是否通过安全检测 }
+        risk_score: { type: number }
+        risk_level: { type: string }
+        summary: { type: object }
+        injection_detected: { type: boolean }
+        jailbreak_detected: { type: boolean }
+        harmful_detected: { type: boolean }
+        threats:
+          type: array
+          items:
+            type: object
+            properties:
+              category: { type: string, description: OWASP 公共类别 ID }
+              category_name: { type: string }
+              severity: { type: string }
+              match_context: { type: string, description: 命中上下文片段 }
+              recommendation: { type: string }
+        hallucination: { type: object, nullable: true }
+        llm_analysis: { type: object, nullable: true }
+        quota: { $ref: '#/components/schemas/Quota' }
+
+    TrajectoryRequest:
+      type: object
+      required: [trajectory]
+      properties:
+        trajectory:
+          type: array
+          minItems: 1
+          maxItems: 20
+          description: Agent 轨迹步骤列表
+          items: { $ref: '#/components/schemas/TrajectoryStep' }
+        task: { type: string, description: 原始任务指令（task_completion/scope_drift 裁判用） }
+        tool_schemas: { type: object, description: 工具 JSON Schema 注册表（可选） }
+        speed:
+          type: string
+          enum: [fast, standard, deep]
+          default: standard
+          description: 速度模式
+        domain:
+          type: string
+          enum: [general, medical, legal, finance, education, government]
+          description: 领域模式
+    TrajectoryStep:
+      type: object
+      required: [step]
+      properties:
+        step: { type: integer }
+        thought: { type: string, description: 该步思考 }
+        action: { type: string, description: 调用的工具名 }
+        action_input: { type: string, description: 工具入参（JSON 字符串） }
+        observation: { type: string, description: 工具实际输出 }
+        final_answer: { type: string, description: 终答（通常仅末步有） }
+    TrajectoryResponse:
+      type: object
+      properties:
+        detection_id: { type: integer }
+        summary:
+          type: object
+          properties:
+            total_steps: { type: integer }
+            hallucinated_steps: { type: integer }
+            clean_steps: { type: integer }
+            propagation_chains: { type: integer }
+            llm_calls: { type: integer }
+            search_calls: { type: integer }
+            truncated: { type: boolean, description: 是否触及 LLM 调用硬上限被截断 }
+            dimensions:
+              type: object
+              description: 六维评分（tool_selection/parameter_validity/observation_faithfulness/reasoning_coherence/task_completion/trajectory_efficiency）
+            cua_gui_steps: { type: integer, description: 混合轨迹中 GUI 动作步数 }
+            cua_risky_steps: { type: integer, description: L2/L3 危险动作步数 }
+            cua_escalated_steps: { type: integer, description: 幻觉驱动的危险动作升级步数 }
+        steps:
+          type: array
+          items:
+            type: object
+            properties:
+              step: { type: integer }
+              action: { type: string }
+              has_hallucination: { type: boolean }
+              checks: { type: array, items: { type: object } }
+        propagation:
+          type: array
+          description: 幻觉传播 DAG（from_step → to_steps，含 claim/confidence）
+          items: { type: object }
+        agent_eval:
+          type: object
+          description: 六维向后兼容的扁平评分
+        failure_modes:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string, description: 失败模式码（如 SCHEMA_VIOLATION/CLAIM_MISMATCH/SCOPE_DRIFT） }
+              step: { type: integer }
+              severity: { type: string, enum: [low, medium, high] }
+        quota: { $ref: '#/components/schemas/Quota' }
+
+    CuaClassifyRequest:
+      type: object
+      required: [actions]
+      properties:
+        actions:
+          type: array
+          minItems: 1
+          maxItems: 500
+          description: 动作列表（宽松输入，字段均可选）
+          items: { $ref: '#/components/schemas/CuaClassifyAction' }
+        session_id: { type: string, minLength: 1, maxLength: 64, description: 可选；给了则写入审计表，可在 /cua/audit 回放 }
+    CuaClassifyAction:
+      type: object
+      description: |
+        宽松输入：{x,y} 坐标式点击推断为 click；pyautogui 风格动作名自动归一化；
+        给了 action 则按字面。以下字段均可选。
+      properties:
+        action: { type: string, description: 动作名（click/press/hotkey/write/type/paste/move/doubleclick/scroll…），省略则由坐标推断 }
+        x: { type: number, description: 坐标式点击 X }
+        y: { type: number, description: 坐标式点击 Y }
+        coordinate: { type: array, items: { type: integer }, description: '[x, y] 二元组（与 x/y 二选一）' }
+        action_input: { type: string, description: ReAct 形态输入别名 → text }
+        text: { type: string, description: type/key/paste 的内容 }
+        target_app: { type: string, description: 目标应用 }
+        app: { type: string, description: target_app 别名 }
+        target_element: { type: string, description: 目标元素标签 }
+        element: { type: string, description: target_element 别名 }
+        target_path: { type: string, description: 文件操作路径 / 终端命令路径 }
+        path: { type: string, description: target_path 别名 }
+        thought: { type: string, description: agent 推理文本（审计留痕） }
+    CuaClassifyResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              step: { type: integer }
+              action:
+                type: object
+                description: 归一化后的动作（回显，方便看出 {x,y} 被推断成了 click）
+                properties:
+                  action: { type: string }
+                  text: { type: string }
+                  target_app: { type: string }
+                  target_element: { type: string }
+                  target_path: { type: string }
+                  coordinate: { type: array, items: { type: integer }, nullable: true }
+              level: { type: string, enum: [L0, L1, L2, L3] }
+              verdict: { type: string }
+              outcome: { type: string, description: 'L0 放行 / L1 放行+记录 / L2 需确认 / L3 阻断' }
+              reasons: { type: array, items: { type: string } }
+              matched_rules: { type: array, items: { type: string } }
+        summary:
+          type: object
+          properties:
+            total: { type: integer }
+            L0: { type: integer }
+            L1: { type: integer }
+            L2: { type: integer }
+            L3: { type: integer }
+            blocked: { type: integer, description: L3 数 }
+            confirm: { type: integer, description: L2 数 }
+        session_id: { type: string, nullable: true }
+
+    Quota:
+      type: object
+      description: 与 Web 仪表盘同源的额度状态，随调用递减
+      properties:
+        plan: { type: string }
+        used: { type: integer }
+        limit: { type: integer, nullable: true, description: 日限额（免费版），null=无限 }
+        remaining: { type: integer, nullable: true }
