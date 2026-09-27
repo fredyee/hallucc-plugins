@@ -14,7 +14,7 @@ a thin client; no model or search logic runs locally.
 | **Hallucination Detection** (`halluc_detect`) | Verifies factual claims in AI-generated text with multi-source search. Each claim is labeled ✅ supported / ⚠️ unverified / ❌ refuted with evidence sources and an overall hallucination-risk score. |
 | **Agent Trajectory Evaluation** (`halluc_detect_trajectory`) | Audits a full agent execution trajectory (per-step thought/action/observation), not just the final answer. Six-dimension scoring, failure-mode codes, hallucination propagation DAG. |
 | **AI Safety Guard** (`guard_check`) | OWASP LLM Top 10 aligned safety gate: prompt injection, jailbreak, harmful content, sensitive-data leakage, fraud. |
-| **CUA Action Risk Classification** (`cua_classify`) | Classifies Computer-Use Agent (GUI) actions L0–L3 (allow / log / confirm / block). Pure rule engine — free, no quota cost, safe for high-frequency calls. |
+| **CUA Action Risk Classification** (`cua_classify`) | Classifies Computer-Use Agent (GUI) actions L0–L3 (allow / log / confirm / block) plus `takeover` (credential scenarios suspend and wait for the user to type it themselves). Pure rule engine — free, no quota cost, safe for high-frequency calls. |
 | **CUA Code Audit** (`cua_audit_code`) | Static-analyzes Agent source code for dangerous imports, permission boundaries, injection surfaces, dangerous defaults, sandbox absence. Pure rule engine — free, no quota cost. |
 
 ## Setup
@@ -37,6 +37,19 @@ a thin client; no model or search logic runs locally.
 - **CUA actions input** is a lenient JSON array: `{"x":100,"y":200}` implies a click;
   pyautogui-style names (`press`, `hotkey`, `write`, `typewrite`, `move`,
   `doubleclick`, `scroll`…) are normalized automatically.
+- **Multi-agent delegation chains**: each action may optionally carry `chain_id` /
+  `agent_id` / `parent_agent_id` / `delegation_depth`, in which case the backend appends a
+  cross-agent propagation analysis (the chain aggregate level is raised to L3 and
+  `risk_diluted` is set when cross-hop propagation exists) under the `chain_trace` field;
+  omit them and behaviour is unchanged.
+- **CUA rules covered**: sensitive paths, destructive commands, irreversible element
+  semantics, domain grading (unknown-domain navigation L2; blacklisted domains and
+  sensitive paste to non-allowlisted domains L3; payment amounts above threshold L3),
+  credential lexicon plus payment/login-domain takeover, and task-intent deviation
+  (an action leaving the scope escalates one level — tightening only, never loosening).
+  Responses include `ruleset_version` (the rule-set version, so you can verify online
+  detection and the local Gate run the same rules) and `disclaimer` (results are a
+  grading reference only — nothing is actually blocked).
 - `guard_check` with `check_hallucination=true` additionally runs the hallucination
   pipeline and consumes detection quota.
 

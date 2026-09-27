@@ -4,7 +4,7 @@ info:
   description: |
     HallucC 提供 AI 内容幻觉检测、安全网关、Agent 轨迹全链路评估、CUA 动作风险分级能力。
     作为 Coze 插件使用时，可作为 Agent 内容安全校验节点。
-  version: 1.1.0
+  version: 1.2.0
   x-coze-plugin:
     name: HallucC 幻觉检测
     description: |
@@ -102,7 +102,12 @@ paths:
       operationId: classifyCuaActions
       summary: CUA 动作风险分级
       description: |
-        Computer-Use Agent 动作风险分级（L0 放行 / L1 放行+记录 / L2 需确认 / L3 阻断）。
+        Computer-Use Agent 动作风险分级（L0 放行 / L1 放行+记录 / L2 需确认 / L3 阻断 /
+        takeover 凭据场景挂起等用户亲手输入）。
+        覆盖：敏感路径、破坏性命令、不可逆元素语义、域名分级（未知域导航 L2、黑名单域与
+        敏感粘贴到未知域 L3、支付金额超阈值 L3）、凭据词表与支付/登录域 takeover、
+        task_scope 任务意图偏离（越界升一级，只能收窄）。
+        响应含 ruleset_version（规则库版本）与 disclaimer（本结果仅为分级参考，未执行实际拦截）。
         纯规则引擎，不调 LLM、不耗额度，可高频调用。
         宽松输入：每条 action 可只给 {x,y} 坐标式点击、pyautogui 风格动作名
         （press/hotkey/write/typewrite/move/doubleclick…）或 ReAct 风格 action_input，
@@ -315,6 +320,16 @@ components:
           description: 动作列表（宽松输入，字段均可选）
           items: { $ref: '#/components/schemas/CuaClassifyAction' }
         session_id: { type: string, minLength: 1, maxLength: 64, description: 可选；给了则写入审计表，可在 /cua/audit 回放 }
+        task_scope:
+          type: object
+          description: |
+            任务意图对齐（收窄机制）：动作越出 scope 时升一级处置（L0→L1、L1→L2、L2 保持但追加
+            「超出任务范围」、L3 不变）。只能收窄不可放宽；不传则零影响。
+          properties:
+            task: { type: string, minLength: 1, description: 声明的任务意图（如「整理本周会议纪要」） }
+            allowed_apps: { type: array, items: { type: string }, description: 允许的前台应用白名单 }
+            allowed_domains: { type: array, items: { type: string }, description: 允许的域名白名单（后缀匹配含子域） }
+            forbidden_elements: { type: array, items: { type: string }, description: 禁止的元素标签（优先级最高） }
     CuaClassifyAction:
       type: object
       description: |
@@ -333,7 +348,13 @@ components:
         element: { type: string, description: target_element 别名 }
         target_path: { type: string, description: 文件操作路径 / 终端命令路径 }
         path: { type: string, description: target_path 别名 }
+        target_url: { type: string, description: 浏览器动作目标 URL（域名分级：未知域导航 L2、敏感粘贴到未知域 L3、黑名单域 L3） }
+        url: { type: string, description: target_url 别名 }
         thought: { type: string, description: agent 推理文本（审计留痕） }
+        chain_id: { type: string, description: 可选（P1-9 多智能体委托链）；委托链 id（uuid hex），给了则审计按 chain_id 跨会话聚合，并追加链级跨跳污点分析 }
+        agent_id: { type: string, description: 可选（P1-9）；本动作所属 Agent 名，配合 registered_agents 做注册校验 }
+        parent_agent_id: { type: string, description: 可选（P1-9）；委托方 Agent 名，跨 agent 边界的传播链由此配对 }
+        delegation_depth: { type: integer, minimum: 0, description: 可选（P1-9）；委托深度（根 Agent=0），超 delegation_max_depth 升 L2 }
     CuaClassifyResponse:
       type: object
       properties:

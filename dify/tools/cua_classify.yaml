@@ -33,16 +33,22 @@ parameters:
         {"action":"click","x":100,"y":200}, {"x":100,"y":200},
         {"action":"hotkey","text":"ctrl+a"},
         {"action":"write","text":"..."}, with optional target_app /
-        target_element / target_path.
+        target_element / target_path. For multi-agent harnesses each item may
+        also carry chain_id / agent_id / parent_agent_id / delegation_depth,
+        which adds cross-agent propagation analysis to the response.
       zh_Hans: >-
         JSON 数组，1-500 条。每条可用宽松格式：{"action":"click","x":100,"y":200}
         或只给坐标 {"x":100,"y":200}（自动推断为 click）、pyautogui 风格动作名
         （press/hotkey/write/typewrite/move/doubleclick/scroll…），
-        可选 target_app / target_element / target_path。
+        可选 target_app / target_element / target_path。多智能体场景下每条动作
+        还可带 chain_id / agent_id / parent_agent_id / delegation_depth，服务端
+        会追加跨 agent 传播链分析（不传则零影响）。
     llm_description: >-
       JSON array of GUI actions to classify. Each action: optional action
       name, x/y coordinate or coordinate pair, text/action_input payload, and
-      optional target_app / target_element / target_path.
+      optional target_app / target_element / target_path. Multi-agent chains:
+      add chain_id / agent_id / parent_agent_id / delegation_depth per action
+      for cross-agent propagation analysis.
   - name: session_id
     type: string
     required: false

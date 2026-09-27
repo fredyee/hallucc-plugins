@@ -13,7 +13,7 @@ HallucC（https://aihcc.cloud）把生产级 AI 内容核验带进 Dify 工作�
 | **幻觉检测**（`halluc_detect`） | 多源搜索交叉核验 AI 生成文本中的事实性声明，逐条标注 ✅ 证实 / ⚠️ 存疑 / ❌ 证伪，附来源链接与整体幻觉风险评分。 |
 | **Agent 轨迹检测**（`halluc_detect_trajectory`） | 审计 Agent 完整执行轨迹（逐步 thought/action/observation），而非只看最终答案：六维评分、失败模式分类、幻觉传播 DAG。 |
 | **AI 安全检测**（`guard_check`） | 对齐 OWASP LLM Top 10 的安全网关：Prompt 注入、越狱、有害内容、敏感信息泄露、欺诈。 |
-| **CUA 动作风险分级**（`cua_classify`） | Computer-Use Agent（GUI 操作）动作分级 L0–L3（放行/记录/确认/阻断）。纯规则引擎——免费、不耗额度、可高频调用。 |
+| **CUA 动作风险分级**（`cua_classify`） | Computer-Use Agent（GUI 操作）动作分级 L0–L3（放行/记录/确认/阻断）+ takeover（凭据场景挂起等用户亲手输入）。纯规则引擎——免费、不耗额度、可高频调用。 |
 | **CUA 代码审计**（`cua_audit_code`） | Agent 源码静态审计：危险导入、权限边界、注入面、危险默认值、沙箱缺失。纯规则引擎——免费、不耗额度。 |
 
 ## 配置
@@ -34,6 +34,14 @@ HallucC（https://aihcc.cloud）把生产级 AI 内容核验带进 Dify 工作�
 - **CUA 动作入参**为宽松 JSON 数组：`{"x":100,"y":200}` 自动推断为点击；
   pyautogui 风格动作名（`press`、`hotkey`、`write`、`typewrite`、`move`、
   `doubleclick`、`scroll`…）自动归一化。
+- **多智能体委托链**：每条动作可选带 `chain_id` / `agent_id` / `parent_agent_id` /
+  `delegation_depth`，服务端追加跨 agent 传播链分析（跨跳传播时聚合级别抬到 L3 并置
+  `risk_diluted`），返回在 `chain_trace` 字段；不传则零影响。
+- **CUA 分级规则覆盖**：敏感路径、破坏性命令、不可逆元素语义、域名分级（未知域导航 L2、
+  黑名单域与敏感粘贴到非白名单域 L3、支付金额超阈值 L3）、凭据词表与支付/登录域 takeover、
+  任务意图偏离（应用/域名/元素越出 scope 升一级，只能收窄不可放宽）。响应含
+  `ruleset_version`（规则库版本，便于核对在线检测与本地 Gate 是否同版）与 `disclaimer`
+  （检测结果仅为分级参考，未执行实际拦截）。
 - `guard_check` 开启 `check_hallucination` 会额外跑幻觉检测管线，消耗检测额度。
 
 ## 计费

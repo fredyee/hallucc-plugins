@@ -314,6 +314,10 @@ components:
         target_path: { type: string, description: 文件操作路径 / 终端命令路径 }
         path: { type: string, description: target_path 别名 }
         thought: { type: string, description: agent 推理文本（审计留痕） }
+        chain_id: { type: string, description: 可选（P1-9 多智能体委托链）；委托链 id（uuid hex），给了则审计按 chain_id 跨会话聚合，并追加链级跨跳污点分析 }
+        agent_id: { type: string, description: 可选（P1-9）；本动作所属 Agent 名，配合 registered_agents 做注册校验 }
+        parent_agent_id: { type: string, description: 可选（P1-9）；委托方 Agent 名，跨 agent 边界的传播链由此配对 }
+        delegation_depth: { type: integer, minimum: 0, description: 可选（P1-9）；委托深度（根 Agent=0），超 delegation_max_depth 升 L2 }
     CuaClassifyResponse:
       type: object
       properties:
