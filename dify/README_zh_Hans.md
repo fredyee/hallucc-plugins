@@ -46,7 +46,7 @@ HallucC（https://aihcc.cloud）把生产级 AI 内容核验带进 Dify 工作�
 
 ## 计费
 
-免费版每天 2 次检测；Pro ¥49/月（500 次）、Pro 增强 ¥99/月（2000 次，含 CUA 拦截）；
+免费版每天 3 次检测；Pro ¥49/月（500 次）、Pro 增强 ¥99/月（2000 次，含 CUA 拦截）；
 API 按量 ¥0.1/次。`cua_classify` 对所有用户免费。额度管理见 <https://aihcc.cloud>。
 
 ## 隐私

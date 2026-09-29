@@ -42,7 +42,7 @@ parameters:
       en_US: Filename
       zh_Hans: 文件名
     human_description:
-      en_US: Filename for identification in the report (default: input.py).
+      en_US: "Filename for identification in the report (default: input.py)."
       zh_Hans: 文件名，用于报告中标识（默认 input.py）。
     llm_description: >-
       Filename for the code (default: input.py).

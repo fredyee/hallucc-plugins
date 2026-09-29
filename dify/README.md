@@ -55,7 +55,7 @@ a thin client; no model or search logic runs locally.
 
 ## Billing
 
-Free tier 2 detections/day; Pro ¥49/month (500), Pro+ ¥99/month (2000, incl. CUA
+Free tier 3 detections/day; Pro ¥49/month (500), Pro+ ¥99/month (2000, incl. CUA
 interception); API pay-as-you-go ¥0.1/call. `cua_classify` is free for all users.
 Manage quota at <https://aihcc.cloud>.
 
