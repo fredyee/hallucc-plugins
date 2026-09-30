@@ -4,7 +4,7 @@ info:
   description: |
     HallucC 提供 AI 内容幻觉检测、安全网关、Agent 轨迹全链路评估、CUA 动作风险分级能力。
     作为 Coze 插件使用时，可作为 Agent 内容安全校验节点。
-  version: 1.2.0
+  version: 1.2.1
   x-coze-plugin:
     name: HallucC 幻觉检测
     description: |
@@ -16,7 +16,7 @@ info:
     icon: https://aihcc.cloud/favicon.ico
     category: AI安全
     pricing: |
-      免费版 2次/天；订阅 Pro ¥49/月（500次）、Pro增强 ¥99/月（2000次，含 CUA 拦截）、
+      免费版 3次/天；订阅 Pro ¥49/月（500次）、Pro增强 ¥99/月（2000次，含 CUA 拦截）、
       CUA版 ¥59/月（500次远程确认 + 检测）；API版 ¥0.1/次按量计费。
       CUA 动作分级在线检测（/cua/classify）对所有用户免费、不耗额度。
 
