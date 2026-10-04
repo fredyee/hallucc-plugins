@@ -40,6 +40,8 @@ def check(plugin_dir: pathlib.Path) -> int:
         return 1
 
     old_cwd = pathlib.Path.cwd()
+    old_dont_write = sys.dont_write_bytecode
+    sys.dont_write_bytecode = True  # 导入插件模块时不要往插件树写 .pyc
     os.chdir(plugin_dir)
     sys.path.insert(0, str(plugin_dir))
 
@@ -48,11 +50,19 @@ def check(plugin_dir: pathlib.Path) -> int:
     print("== 1. Python 语法检查 ==")
     try:
         import py_compile
+        import tempfile
 
-        for py in sorted(plugin_dir.rglob("*.py")):
-            if "__pycache__" in py.parts:
-                continue
-            py_compile.compile(str(py), doraise=True)
+        # cfile 必须落到临时目录，否则会在插件树里生成 __pycache__/*.pyc
+        with tempfile.TemporaryDirectory() as tmp:
+            for py in sorted(plugin_dir.rglob("*.py")):
+                if "__pycache__" in py.parts:
+                    continue
+                cfile = str(
+                    pathlib.Path(tmp)
+                    / (py.relative_to(plugin_dir).as_posix().replace("/", "__")
+                       + ".pyc")
+                )
+                py_compile.compile(str(py), cfile=cfile, doraise=True)
         print("   ok")
     except Exception as e:  # noqa: BLE001
         failures.append(f"Python 编译失败: {e}")
@@ -103,6 +113,7 @@ def check(plugin_dir: pathlib.Path) -> int:
         traceback.print_exc()
     finally:
         os.chdir(old_cwd)
+        sys.dont_write_bytecode = old_dont_write
         if sys.path and sys.path[0] == str(plugin_dir):
             sys.path.pop(0)
 
