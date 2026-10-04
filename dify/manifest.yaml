@@ -2,6 +2,7 @@ version: 0.2.1
 type: plugin
 author: fredyee
 name: hallucc
+repo: https://github.com/fredyee/hallucc-plugins/tree/main/dify
 label:
   en_US: HallucC
   zh_Hans: HallucC 幻觉检测
@@ -40,4 +41,5 @@ meta:
     language: python
     version: "3.12"
     entrypoint: main
+  minimum_dify_version: 1.9.0
 created_at: 2026-09-18T00:00:00Z

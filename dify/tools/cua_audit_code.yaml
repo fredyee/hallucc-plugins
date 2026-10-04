@@ -61,3 +61,6 @@ parameters:
       zh_Hans: JSON 数组：[{"path":"agent.py","content":"..."}, ...]。与 code 二选一。
     llm_description: >-
       JSON array of {path, content} objects for multi-file audit.
+extra:
+  python:
+    source: tools/cua_audit_code.py
